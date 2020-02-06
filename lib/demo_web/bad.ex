@@ -6,9 +6,10 @@ defmodule DemoWeb.Bad do
     <form phx-change="change" phx-submit="submit">
     <label>
     check me
-    <input type="checkbox" value="true" <%= if @checked, do: "checked" %> name="foo">
+    <input type="checkbox" value="true" <%= if @check1, do: "checked" %> name="check1">
+    <input type="checkbox" value="true" <%= if @check2, do: "checked" %> name="check2">
     </label>
-    <button type="submit">Submit</button>
+    <button type="submit">Invert</button>
     </form>
     """
   end
@@ -16,7 +17,8 @@ defmodule DemoWeb.Bad do
   def mount(_, _, socket) do
     socket =
       socket
-      |> assign(:checked, false)
+      |> assign(:check1, true)
+      |> assign(:check2, false)
 
     {:ok, socket}
   end
@@ -25,18 +27,25 @@ defmodule DemoWeb.Bad do
     params |> IO.inspect(label: :phx_change)
 
     socket =
-      if params["foo"] == "true" do
-        assign(socket, :checked, true)
-      else
-        socket
-      end
+      Enum.reduce(["check1", "check2"], socket, fn param, socket ->
+        if params[param] == "true" do
+          # lol
+          assign(socket, String.to_atom(param), true)
+        else
+          assign(socket, String.to_atom(param), false)
+        end
+      end)
 
     {:noreply, socket}
   end
 
   def handle_event("submit", params, socket) do
-    params |> IO.inspect(label: :phx_submit)
-    socket = assign(socket, :checked, false)
+    # on submit, we invert the current check state.
+    socket =
+      socket
+      |> update(:check1, &(!&1))
+      |> update(:check2, &(!&1))
+
     {:noreply, socket}
   end
 end
