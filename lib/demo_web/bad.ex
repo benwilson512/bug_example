@@ -3,27 +3,40 @@ defmodule DemoWeb.Bad do
 
   def render(assigns) do
     ~L"""
-    <%= @now %>
-    <form>
-    <input type="text" />
-    <select>
-      <option>A</option>
-      <option>B</option>
-    </select>
+    <form phx-change="change" phx-submit="submit">
+    <label>
+    check me
+    <input type="checkbox" value="true" <%= if @checked, do: "checked" %> name="foo">
+    </label>
+    <button type="submit">Submit</button>
     </form>
     """
   end
 
   def mount(_, _, socket) do
-    {:ok, tick(socket)}
+    socket =
+      socket
+      |> assign(:checked, false)
+
+    {:ok, socket}
   end
 
-  def handle_info(:tick, socket) do
-    {:noreply, tick(socket)}
+  def handle_event("change", params, socket) do
+    params |> IO.inspect(label: :phx_change)
+
+    socket =
+      if params["foo"] == "true" do
+        assign(socket, :checked, true)
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
-  defp tick(socket) do
-    Process.send_after(self(), :tick, 1_000)
-    assign(socket, :now, DateTime.utc_now())
+  def handle_event("submit", params, socket) do
+    params |> IO.inspect(label: :phx_submit)
+    socket = assign(socket, :checked, false)
+    {:noreply, socket}
   end
 end
