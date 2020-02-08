@@ -4,11 +4,11 @@ defmodule DemoWeb.Bad do
   def render(assigns) do
     ~L"""
     <form phx-change="change" phx-submit="submit">
-    <label>
-    check me
-    <input type="checkbox" value="true" <%= if @check1, do: "checked" %> name="check1">
-    <input type="checkbox" value="true" <%= if @check2, do: "checked" %> name="check2">
-    </label>
+    <select>
+      <option value="a">A</option>
+      <option value="b">B</option>
+      <option value="c">C</option>
+    </select>
     <button type="submit">Invert</button>
     </form>
     """

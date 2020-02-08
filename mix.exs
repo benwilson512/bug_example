@@ -40,7 +40,8 @@ defmodule Demo.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 2.11"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, ">= 0.0.0", github: "phoenixframework/phoenix_live_view"},
+      # {:phoenix_live_view, ">= 0.0.0", github: "phoenixframework/phoenix_live_view"},
+      {:phoenix_live_view, ">= 0.0.0", path: "/Users/ben/src/phoenix_live_view"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"}
