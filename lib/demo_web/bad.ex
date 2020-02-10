@@ -1,15 +1,25 @@
 defmodule DemoWeb.Bad do
   use Phoenix.LiveView
+  use Phoenix.HTML
+
+  defmodule Data do
+    use Ecto.Schema
+    import Ecto.Changeset
+
+    embedded_schema do
+      field :selected, :string
+    end
+
+    def changeset(data \\ %__MODULE__{}, params) do
+      data |> cast(params, [:selected])
+    end
+  end
 
   def render(assigns) do
     ~L"""
-    <form phx-change="change" phx-submit="submit">
-    <select>
-      <option value="a">A</option>
-      <option value="b">B</option>
-      <option value="c">C</option>
-    </select>
-    <button type="submit">Invert</button>
+    <%= @now %>
+    <%= f = form_for @changeset, "#", [phx_change: "change", phx_submit: "submit", csrf_token: false] %>
+    <%= select f, :selected, ["A": "A", "B": "B", "C": "C"] %>
     </form>
     """
   end
@@ -17,24 +27,18 @@ defmodule DemoWeb.Bad do
   def mount(_, _, socket) do
     socket =
       socket
-      |> assign(:check1, true)
-      |> assign(:check2, false)
+      |> assign(:changeset, Data.changeset(%{selected: "A"}))
+      |> tick
 
     {:ok, socket}
   end
 
-  def handle_event("change", params, socket) do
+  def handle_event("change", %{"data" => params}, socket) do
     params |> IO.inspect(label: :phx_change)
 
     socket =
-      Enum.reduce(["check1", "check2"], socket, fn param, socket ->
-        if params[param] == "true" do
-          # lol
-          assign(socket, String.to_atom(param), true)
-        else
-          assign(socket, String.to_atom(param), false)
-        end
-      end)
+      socket
+      |> assign(:changeset, Data.changeset(params))
 
     {:noreply, socket}
   end
@@ -47,5 +51,14 @@ defmodule DemoWeb.Bad do
       |> update(:check2, &(!&1))
 
     {:noreply, socket}
+  end
+
+  def handle_info(:tick, socket) do
+    {:noreply, tick(socket)}
+  end
+
+  defp tick(socket) do
+    Process.send_after(self(), :tick, 1_000)
+    assign(socket, :now, DateTime.utc_now())
   end
 end
