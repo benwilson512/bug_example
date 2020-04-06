@@ -3,49 +3,25 @@ defmodule DemoWeb.Bad do
 
   def render(assigns) do
     ~L"""
-    <form phx-change="change" phx-submit="submit">
-    <label>
-    check me
-    <input type="checkbox" value="true" <%= if @check1, do: "checked" %> name="check1">
-    <input type="checkbox" value="true" <%= if @check2, do: "checked" %> name="check2">
-    </label>
-    <button type="submit">Invert</button>
-    </form>
+    <p>In live view</p>
+    <p><%= @now %></p>
+    <%= live_component(@socket, FooComponent) do %>
+    <p>In component<p>
+    <p><%= @now %></p>
+    <% end %>
     """
   end
 
   def mount(_, _, socket) do
-    socket =
-      socket
-      |> assign(:check1, true)
-      |> assign(:check2, false)
-
-    {:ok, socket}
+    {:ok, tick(socket)}
   end
 
-  def handle_event("change", params, socket) do
-    params |> IO.inspect(label: :phx_change)
-
-    socket =
-      Enum.reduce(["check1", "check2"], socket, fn param, socket ->
-        if params[param] == "true" do
-          # lol
-          assign(socket, String.to_atom(param), true)
-        else
-          assign(socket, String.to_atom(param), false)
-        end
-      end)
-
-    {:noreply, socket}
+  def handle_info(:tick, socket) do
+    {:noreply, tick(socket)}
   end
 
-  def handle_event("submit", params, socket) do
-    # on submit, we invert the current check state.
-    socket =
-      socket
-      |> update(:check1, &(!&1))
-      |> update(:check2, &(!&1))
-
-    {:noreply, socket}
+  defp tick(socket) do
+    Process.send_after(self(), :tick, 1_000)
+    assign(socket, :now, DateTime.utc_now())
   end
 end
