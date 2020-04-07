@@ -23,6 +23,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
   }
 });
 liveSocket.connect()
+window.liveSocket = liveSocket
+liveSocket.enableLatencySim(1000)
 
 // Import local files
 //
